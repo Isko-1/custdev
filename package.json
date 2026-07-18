@@ -1,0 +1,14 @@
+{
+  "name": "factcheck-extension-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Vercel serverless backend для расширения «Разбор манипуляций» — Tech Vision 2026",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.4",
+    "cheerio": "^1.0.0"
+  }
+}
