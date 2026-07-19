@@ -15,6 +15,14 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
+#manip-check-button:active {
+  background: rgba(10, 10, 16, 0.95);
+}
+
+#manip-check-button.manip-analyzing {
+  background: rgba(10, 10, 16, 0.95);
+}
+
 #manip-check-panel {
   position: fixed;
   bottom: 88px;
@@ -81,7 +89,38 @@
 
 #manip-submit-btn:hover {
   background: #922912;
-}  
+}
+
+#manip-submit-btn:active,
+#manip-submit-btn.manip-analyzing {
+  background: #6e2010;
+}
+
+#manip-submit-btn:disabled,
+#manip-check-page-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+
+#manip-check-page-btn.manip-analyzing {
+  background: rgba(176, 52, 30, 0.3);
+}
+
+#manip-cancel-btn {
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: transparent;
+  color: #ccc;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#manip-cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
 
 #manip-check-page-btn {
   width: 100%;
@@ -100,8 +139,40 @@
 }
 
 .manip-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   color: #aaa;
   font-style: italic;
+  padding: 4px 0;
+}
+
+.manip-spinner {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(232, 164, 137, 0.25);
+  border-top-color: #E8A489;
+  animation: manip-spin 0.8s linear infinite;
+}
+
+@keyframes manip-spin {
+  to { transform: rotate(360deg); }
+}
+
+.manip-dot {
+  display: inline-block;
+  opacity: 0.2;
+  animation: manip-dot-fade 1.2s ease-in-out infinite;
+}
+
+.manip-dot:nth-child(2) { animation-delay: 0.15s; }
+.manip-dot:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes manip-dot-fade {
+  0%, 80%, 100% { opacity: 0.2; }
+  40% { opacity: 1; }
 }
 
 .manip-error {
@@ -144,6 +215,41 @@
   margin-top: 8px;
   color: #ccc;
   font-size: 13px;
+}
+
+.manip-sources {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.manip-sources-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #888;
+  margin-bottom: 4px;
+}
+
+.manip-sources-list {
+  margin: 0;
+  padding-left: 18px;
+  list-style: disc;
+}
+
+.manip-sources-list li {
+  margin-bottom: 3px;
+}
+
+.manip-sources-list a {
+  color: #E8A489;
+  font-size: 12.5px;
+  text-decoration: none;
+  word-break: break-word;
+}
+
+.manip-sources-list a:hover {
+  text-decoration: underline;
 }
 
 .manip-recheck {
