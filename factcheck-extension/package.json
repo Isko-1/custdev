@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Vercel serverless backend для расширения «Разбор манипуляций» — Tech Vision 2026",
+  "description": "Vercel serverless backend для расширения «Разбор фейка» — Tech Vision 2026",
   "engines": {
     "node": ">=18"
   },
