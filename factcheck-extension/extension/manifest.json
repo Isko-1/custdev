@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Разбор на фейк",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Плавающая кнопка на любой странице: проверьте текст или ссылку на признаки ложной информации с помощью ИИ.",
   "host_permissions": [
     "https://factchecker-woad.vercel.app/*"
