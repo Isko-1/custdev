@@ -72,34 +72,43 @@ package.json                зависимости (библиотека для 
 ```
 
 ## Локальный запуск (для отладки)
+ 
+ 1. положите файлы в репозиторий
 
+2. Установите зависимости:
 ```bash
-npm install
-npx vercel dev
+   npm install
 ```
 
-`vercel dev` поднимает точную копию продакшен-окружения локально, включая `api/check.js` как serverless-функцию. Отдельный сервер поднимать не нужно.
+3. Задайте переменную окружения `OPENROUTER_API_KEY` — либо через `vercel env pull`
+   (подтянет значения из настроек проекта на Vercel), либо вручную создайте `.env.local`:
+Опционально `SUPABASE_URL` и `SUPABASE_ANON_KEY` для логирования — без них функция
+   просто пропускает этот шаг.
 
-Понадобится переменная окружения `OPENROUTER_API_KEY`, либо через `vercel env pull`, либо вручную в `.env.local`:
+4. Запустите:
+```bash
+   npx vercel dev
 ```
-OPENROUTER_API_KEY=ваш_ключ
+   Поднимет точную копию продакшен-окружения локально (обычно на `http://localhost:3000`),
+   включая `api/check.js` как serverless-функцию. Отдельный сервер не нужен.
+
+5. Проверьте бэкенд напрямую:
+```bash
+   curl -X POST http://localhost:3000/api/check \
+     -H "Content-Type: application/json" \
+     -d '{"type":"text","content":"тест"}'
 ```
-Опционально `SUPABASE_URL` и `SUPABASE_ANON_KEY` для логирования. Без них функция просто пропускает этот шаг.
+
+ Важно: само расширение (`background.js`) жёстко указывает на урл адрес через
+`host_permissions` в `manifest.json`. Чтобы протестировать полный цикл через расширение
+в браузере против локального бэкенда, нужно временно поменять URL в `background.js` на
+`http://localhost:3000/api/check` и добавить `http://localhost:3000/*` в `host_permissions`.
 
 ## Деплой на Vercel
 
-1. Закоммитьте и запушьте изменения в GitHub.
-2. На [vercel.com](https://vercel.com): Project Settings → Root Directory = `factcheck-extension`.
-3. Project Settings → Environment Variables: добавьте `OPENROUTER_API_KEY` (и опционально `SUPABASE_URL`, `SUPABASE_ANON_KEY`).
-4. Redeploy. Vercel сам подхватит `api/check.js` без дополнительного `vercel.json`.
-
-Проверить, что бэкенд реально работает:
-```bash
-curl -X POST https://ваш-проект.vercel.app/api/check \
-  -H "Content-Type: application/json" \
-  -d '{"type":"text","content":"Учёные доказали, что вы не поверите этому секрету!"}'
-```
-В ответе должен быть `signals` с `[Локальный маркер] Кликбейтный заголовок...` и `[Локальный маркер] Апелляция к абстрактному авторитету...`.
+Бэкенд задеплоен на Vercel (Root Directory = `factcheck-extension`, переменные окружения
+`OPENROUTER_API_KEY` и  `SUPABASE_URL`/`SUPABASE_ANON_KEY` заданы в Project Settings).
+Отдельный `vercel.json` не нужен — Vercel сам подхватывает `api/check.js` как serverless-функцию.
 
 ## Установка расширения (для обычных пользователей)
 
