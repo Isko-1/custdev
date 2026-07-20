@@ -170,7 +170,7 @@ function attachFakePatterns(llmResult, localMatches) {
   if (localMatches.length > 0) {
     if (finalRiskLevel === "low") {
       finalRiskLevel = "medium";
-      finalRiskLabel = "Обнаружены маркеры манипуляций";
+      finalRiskLabel = "Обнаружены признаки фейка";
     }
     if (!finalAdvice.includes("независимый источник")) {
       finalAdvice += " В тексте содержатся явные клише или призывы к панике, перепроверьте информацию.";
@@ -188,55 +188,6 @@ function attachFakePatterns(llmResult, localMatches) {
     signals: [...localSignals, ...llmResult.signals],
     advice: finalAdvice
   };
-}
-
-// ---------------------------------------------------------------------------
-// Шаг 4: гибридная сборка финального ответа.
-// ---------------------------------------------------------------------------
-function attachFakePatterns(llmResult, localMatches) {
-  const localSignals = localMatches.map((m) => `[Локальный маркер] ${m.label}: ${m.note}`);
-  
-  // Логика перестраховки: если локальный скрипт нашел ключевые слова манипуляций,
-  // мы автоматически повышаем общий уровень угрозы, даже если ИИ посчитал текст спокойным.
-  let finalRiskLevel = llmResult.riskLevel;
-  let finalRiskLabel = llmResult.riskLabel;
-  let finalAdvice = llmResult.advice;
-
-  if (localMatches.length > 0) {
-    // Если ИИ поставил low, но стоп-слова сработали -> поднимаем до medium
-    if (finalRiskLevel === "low") {
-      finalRiskLevel = "medium";
-      finalRiskLabel = "Обнаружены маркеры манипуляций";
-    }
-    if (!finalAdvice.includes("независимый источник")) {
-      finalAdvice += " В тексте содержатся явные клише или призывы к панике, перепроверьте информацию.";
-    }
-  }
-
-  return {
-    riskLevel: finalRiskLevel,
-    riskLabel: finalRiskLabel,
-    signals: [...localSignals, ...llmResult.signals],
-    advice: finalAdvice
-  };
-}
-
-// ---------------------------------------------------------------------------
-// Опциональное логирование в Supabase.
-// ---------------------------------------------------------------------------
-async function logCheck(content, result) {
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
-  if (!supabaseUrl || !supabaseAnonKey) return;
-
-  try {
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
-    await supabase.from("checks").insert([
-      { content: content.slice(0, 500), result: JSON.stringify(result) },
-    ]);
-  } catch (err) {
-    console.error("Supabase log failed:", err.message);
-  }
 }
 
 // ---------------------------------------------------------------------------
