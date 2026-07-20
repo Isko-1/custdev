@@ -6,7 +6,7 @@ const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 // Список моделей: OpenRouter автоматически переключится, если одна из них выдаст 429
 const FALLBACK_MODELS = [
-  "google/gemma-4-31b-it:free",
+  "google/gemma-2-9b-it:free",
   "meta-llama/llama-3.3-70b-instruct:free",
   "mistralai/mistral-7b-instruct:free",
   "qwen/qwen-2.5-72b-instruct:free"
@@ -128,30 +128,48 @@ async function classifyWithLLM(text, searchContext) {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) throw new Error("OPENROUTER_API_KEY не задан в переменных окружения Vercel");
 
-  const response = await fetch(OPENROUTER_URL, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      models: FALLBACK_MODELS, // Передаем массив вместо единичной модели
-      messages: [
-        { role: "system", content: buildSystemPrompt(searchContext) },
-        { role: "user", content: text },
-      ],
-      temperature: 0.1,
-    }),
-  });
+  let lastError = null;
 
-  if (!response.ok) throw new Error(`OpenRouter вернул статус ${response.status}`);
+  // Пробуем модели по очереди, если текущая перегружена (429) или недоступна
+  for (const modelName of FALLBACK_MODELS) {
+    try {
+      const response = await fetch(OPENROUTER_URL, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: modelName,
+          messages: [
+            { role: "system", content: buildSystemPrompt(searchContext) },
+            { role: "user", content: text },
+          ],
+          temperature: 0.1,
+        }),
+      });
 
-  const data = await response.json();
-  const raw = data.choices?.[0]?.message?.content ?? "";
-  
-  const jsonMatch = raw.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error("модель вернула ответ не в формате JSON");
-  return JSON.parse(jsonMatch[0]);
+      // Если модель перегружена (429) или вернула ошибку запроса (400/500), пробуем следующую
+      if (!response.ok) {
+        const errText = await response.text();
+        console.warn(`Модель ${modelName} вернула статус ${response.status}: ${errText}. Пробуем следующую...`);
+        lastError = new Error(`Модель ${modelName} (${response.status})`);
+        continue;
+      }
+
+      const data = await response.json();
+      const raw = data.choices?.[0]?.message?.content ?? "";
+      
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error("Модель вернула ответ не в формате JSON");
+
+      return JSON.parse(jsonMatch[0]);
+    } catch (err) {
+      lastError = err;
+    }
+  }
+
+  throw new Error(`Не удалось получить ответ ни от одной из моделей. Последняя ошибка: ${lastError?.message}`);
 }
 
 // ---------------------------------------------------------------------------
