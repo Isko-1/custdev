@@ -1,4 +1,4 @@
-# facctcheck — расширение для браузера
+# factcheck — расширение для браузера
 
 Tech Vision 2026. Направление: Digital Economy & Future Tech. Зона 13: Медиа-решения (Creative Content & Media).
 
@@ -91,13 +91,6 @@ package.json                зависимости (библиотека для 
 ```
    Поднимет точную копию продакшен-окружения локально (обычно на `http://localhost:3000`),
    включая `api/check.js` как serverless-функцию. Отдельный сервер не нужен.
-
-5. Проверьте бэкенд напрямую:
-```bash
-   curl -X POST http://localhost:3000/api/check \
-     -H "Content-Type: application/json" \
-     -d '{"type":"text","content":"тест"}'
-```
 
  Важно: само расширение (`background.js`) жёстко указывает на урл адрес через
 `host_permissions` в `manifest.json`. Чтобы протестировать полный цикл через расширение
