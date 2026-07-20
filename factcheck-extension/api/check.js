@@ -3,7 +3,7 @@ import * as cheerio from "cheerio";
 
 const MAX_INPUT_CHARS = 4000;
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-const MODEL = "openrouter/free";
+const MODEL = "google/gemma-4-31b-it:free";
 
 // ---------------------------------------------------------------------------
 // Шаг 1: локальный список паттернов текстовых фейков и манипуляций в СМИ/соцсетях.
