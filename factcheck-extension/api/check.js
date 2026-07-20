@@ -3,10 +3,17 @@ import * as cheerio from "cheerio";
 
 const MAX_INPUT_CHARS = 4000;
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-const MODEL = "google/gemma-4-31b-it:free";
+
+// Список моделей: OpenRouter автоматически переключится, если одна из них выдаст 429
+const FALLBACK_MODELS = [
+  "google/gemma-4-31b-it:free",
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "mistralai/mistral-7b-instruct:free",
+  "qwen/qwen-2.5-72b-instruct:free"
+];
 
 // ---------------------------------------------------------------------------
-// Шаг 1: локальный список паттернов текстовых фейков
+// Шаг 1: Локальный список паттернов текстовых фейков
 // ---------------------------------------------------------------------------
 const LOCAL_PATTERNS = [
   {
@@ -79,8 +86,6 @@ async function searchInternet(query) {
     if (!response.ok) return "Не удалось получить результаты поиска.";
 
     const data = await response.json();
-    
-    // Формируем из поисковой выдачи сжатый текстовый отчет для ИИ
     const results = data.organic || [];
     if (results.length === 0) return "По запросу ничего не найдено в авторитетных источниках.";
 
@@ -93,10 +98,10 @@ async function searchInternet(query) {
 }
 
 // ---------------------------------------------------------------------------
-// Шаг 4: Усиленный промпт ИИ, который сопоставляет новость с фактами из сети
+// Шаг 4: Усиленный промпт ИИ и обращение к OpenRouter (с массивом моделей)
 // ---------------------------------------------------------------------------
 function buildSystemPrompt(searchContext) {
-  return `Ты — строгий эксперт по фактчекингу и медиаграмотности. Текущий год: 2026.
+  return `Ты — строгий эксперт по фактчекингу и медиаграмотности.
 Твоя задача — изучить текст пользователя и сравнить его с актуальными данными из интернета, которые тебе предоставлены.
 
 ВОТ ДАННЫЕ ИЗ РЕАЛЬНОГО ИНТЕРНЕТА ПО ЭТОЙ ТЕМЕ:
@@ -130,7 +135,7 @@ async function classifyWithLLM(text, searchContext) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: MODEL,
+      models: FALLBACK_MODELS, // Передаем массив вместо единичной модели
       messages: [
         { role: "system", content: buildSystemPrompt(searchContext) },
         { role: "user", content: text },
@@ -161,7 +166,7 @@ function attachFakePatterns(llmResult, localMatches, originalText) {
 
   if (localMatches.length > 0 && finalRiskLevel === "low") {
     finalRiskLevel = "medium";
-    finalRiskLabel = "Обнаружены маркеры манипуляций";
+    finalRiskLabel = "Обнаружены признаки фейки";
   }
 
   // Мягкая локальная проверка на сатиру
